@@ -45,7 +45,7 @@ class ClassificationNet(nn.Module):
         super(ClassificationNet, self).__init__()
         self.embedding_net = embedding_net
         self.n_classes = n_classes
-        self.nonlinear = nn.PReLU()
+        self.nonlinear = nn.ReLU()
         for last_module in embedding_net.modules():
             pass
         self.fc1 = nn.Linear(last_module.out_features, n_classes)
@@ -53,7 +53,7 @@ class ClassificationNet(nn.Module):
     def forward(self, x):
         output = self.embedding_net(x)
         output = self.nonlinear(output)
-        scores = F.log_softmax(self.fc1(output), dim=-1)
+        scores = F.softmax(self.fc1(output), dim=-1)
         return scores
 
     def get_embedding(self, x):

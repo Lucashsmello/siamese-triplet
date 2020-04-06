@@ -1,6 +1,5 @@
 import numpy as np
 import torch
-from torch.utils.data.sampler import BatchSampler
 
 
 class TripletDataset(torch.utils.data.Dataset):
@@ -13,7 +12,6 @@ class TripletDataset(torch.utils.data.Dataset):
         self.dataset = dataset
         self.train = self.dataset.train
         self.labels = self.dataset.targets
-        self.data = self.dataset.data
         self.labels_set = set(self.labels.numpy())
         self.label_to_indices = {label: np.where(self.labels.numpy() == label)[0]
                                  for label in self.labels_set}

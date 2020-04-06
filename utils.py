@@ -125,8 +125,20 @@ def random_hard_negative(loss_values):
     return np.random.choice(hard_negatives) if len(hard_negatives) > 0 else None
 
 
-def semihard_negative(loss_values, margin):
-    semihard_negatives = np.where(np.logical_and(loss_values < margin, loss_values > 0))[0]
+def random_specific_negative(loss_values, lower_bound, upper_bound):
+    if(upper_bound is None):
+        specific_negatives = np.where(loss_values > lower_bound)[0]
+    elif(lower_bound is None):
+        specific_negatives = np.where(loss_values > upper_bound)[0]
+    else:
+        specific_negatives = np.where(np.logical_and(
+            loss_values < upper_bound, loss_values > lower_bound))[0]
+
+    return np.random.choice(specific_negatives) if len(specific_negatives) > 0 else None
+
+
+def semihard_negative(loss_values, margin, hard_factor):
+    semihard_negatives = np.where(np.logical_and(loss_values < margin*hard_factor, loss_values > 0))[0]
     return np.random.choice(semihard_negatives) if len(semihard_negatives) > 0 else None
 
 
@@ -189,6 +201,20 @@ def RandomNegativeTripletSelector(margin, cpu=False): return FunctionNegativeTri
                                                                                 cpu=cpu)
 
 
-def SemihardNegativeTripletSelector(margin, cpu=False): return FunctionNegativeTripletSelector(margin=margin,
-                                                                                  negative_selection_fn=lambda x: semihard_negative(x, margin),
+def SemihardNegativeTripletSelector(margin, hard_factor=1.0, cpu=False): return FunctionNegativeTripletSelector(margin=margin,
+                                                                                  negative_selection_fn=lambda x: semihard_negative(x, margin, hard_factor),
                                                                                   cpu=cpu)
+
+
+def HardNegativeTripletSelector(margin, cpu=False):
+    return FunctionNegativeTripletSelector(margin=margin,
+                                           negative_selection_fn=lambda x: random_specific_negative(
+                                               x, margin, None),
+                                           cpu=cpu)
+
+
+def SpecificNegativeTripletSelector(margin, lower_bound, upper_bound, cpu=False):
+    return FunctionNegativeTripletSelector(margin=margin,
+                                           negative_selection_fn=lambda x: random_specific_negative(
+                                               x, lower_bound, upper_bound),
+                                           cpu=cpu)

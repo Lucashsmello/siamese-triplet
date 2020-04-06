@@ -11,22 +11,22 @@ class SiameseMNIST(Dataset):
     Test: Creates fixed pairs for testing
     """
 
-    def __init__(self, mnist_dataset):
-        self.mnist_dataset = mnist_dataset
+    def __init__(self, dataset):
+        self.dataset = dataset
 
-        self.train = self.mnist_dataset.train
-        self.transform = self.mnist_dataset.transform
+        self.train = self.dataset.train
+        self.transform = self.dataset.transform
 
         if self.train:
-            self.train_labels = self.mnist_dataset.train_labels
-            self.train_data = self.mnist_dataset.train_data
+            self.train_labels = self.dataset.train_labels
+            self.train_data = self.dataset.train_data
             self.labels_set = set(self.train_labels.numpy())
             self.label_to_indices = {label: np.where(self.train_labels.numpy() == label)[0]
                                      for label in self.labels_set}
         else:
             # generate fixed pairs for testing
-            self.test_labels = self.mnist_dataset.test_labels
-            self.test_data = self.mnist_dataset.test_data
+            self.test_labels = self.dataset.test_labels
+            self.test_data = self.dataset.test_data
             self.labels_set = set(self.test_labels.numpy())
             self.label_to_indices = {label: np.where(self.test_labels.numpy() == label)[0]
                                      for label in self.labels_set}
@@ -73,7 +73,7 @@ class SiameseMNIST(Dataset):
         return (img1, img2), target
 
     def __len__(self):
-        return len(self.mnist_dataset)
+        return len(self.dataset)
 
 
 class TripletMNIST(Dataset):
@@ -82,21 +82,21 @@ class TripletMNIST(Dataset):
     Test: Creates fixed triplets for testing
     """
 
-    def __init__(self, mnist_dataset):
-        self.mnist_dataset = mnist_dataset
-        self.train = self.mnist_dataset.train
-        self.transform = self.mnist_dataset.transform
+    def __init__(self, dataset):
+        self.dataset = dataset
+        self.train = self.dataset.train
+        self.transform = self.dataset.transform
 
         if self.train:
-            self.train_labels = self.mnist_dataset.train_labels
-            self.train_data = self.mnist_dataset.train_data
+            self.train_labels = self.dataset.train_labels
+            self.train_data = self.dataset.train_data
             self.labels_set = set(self.train_labels.numpy())
             self.label_to_indices = {label: np.where(self.train_labels.numpy() == label)[0]
                                      for label in self.labels_set}
 
         else:
-            self.test_labels = self.mnist_dataset.test_labels
-            self.test_data = self.mnist_dataset.test_data
+            self.test_labels = self.dataset.test_labels
+            self.test_data = self.dataset.test_data
             # generate fixed triplets for testing
             self.labels_set = set(self.test_labels.numpy())
             self.label_to_indices = {label: np.where(self.test_labels.numpy() == label)[0]
@@ -140,7 +140,7 @@ class TripletMNIST(Dataset):
         return (img1, img2, img3), []
 
     def __len__(self):
-        return len(self.mnist_dataset)
+        return len(self.dataset)
 
 
 class BalancedBatchSampler(BatchSampler):
