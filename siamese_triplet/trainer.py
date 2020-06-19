@@ -2,42 +2,6 @@ import torch
 import numpy as np
 
 
-def fit(train_loader, val_loader, model, loss_fn, optimizer, scheduler, n_epochs, cuda, log_interval, metrics=[],
-        start_epoch=0):
-    """
-    Loaders, model, loss function and metrics should work together for a given task,
-    i.e. The model should be able to process data output of loaders,
-    loss function should process target output of loaders and outputs from the model
-
-    Examples: Classification: batch loader, classification model, NLL loss, accuracy metric
-    Siamese network: Siamese loader, siamese model, contrastive loss
-    Online triplet learning: batch loader, embedding model, online triplet loss
-    """
-    for epoch in range(0, start_epoch):
-        scheduler.step()
-
-    for epoch in range(start_epoch, n_epochs):
-
-        # Train stage
-        train_loss, metrics = train_epoch(train_loader, model, loss_fn, optimizer, cuda, log_interval, metrics)
-        scheduler.step()
-
-        message = 'Epoch: {}/{}. Train set: Average loss: {:.4f}'.format(epoch + 1, n_epochs, train_loss)
-        for metric in metrics:
-            message += '\t{}: {}'.format(metric.name(), metric.value())
-
-        if(val_loader):
-            val_loss, metrics = test_epoch(val_loader, model, loss_fn, cuda, metrics)
-            val_loss /= len(val_loader)
-
-            message += '\nEpoch: {}/{}. Validation set: Average loss: {:.4f}'.format(epoch + 1, n_epochs,
-                                                                                    val_loss)
-            for metric in metrics:
-                message += '\t{}: {}'.format(metric.name(), metric.value())
-
-        print(message)
-
-
 def train_epoch(train_loader, model, loss_fn, optimizer, cuda, log_interval, metrics):
     for metric in metrics:
         metric.reset()
@@ -88,7 +52,7 @@ def train_epoch(train_loader, model, loss_fn, optimizer, cuda, log_interval, met
             losses = []
 
     total_loss /= (batch_idx + 1)
-    return total_loss, metrics
+    return total_loss
 
 
 def test_epoch(val_loader, model, loss_fn, cuda, metrics):
@@ -122,4 +86,43 @@ def test_epoch(val_loader, model, loss_fn, cuda, metrics):
             for metric in metrics:
                 metric(outputs, target, loss_outputs)
 
-    return val_loss, metrics
+    return val_loss
+
+
+def fit(train_loader, val_loader, model, loss_fn, optimizer, scheduler, n_epochs, cuda, log_interval, metrics=[],
+        start_epoch=0, custom_trainepoch=train_epoch):
+    """
+    Loaders, model, loss function and metrics should work together for a given task,
+    i.e. The model should be able to process data output of loaders,
+    loss function should process target output of loaders and outputs from the model
+
+    Examples: Classification: batch loader, classification model, NLL loss, accuracy metric
+    Siamese network: Siamese loader, siamese model, contrastive loss
+    Online triplet learning: batch loader, embedding model, online triplet loss
+    """
+    for epoch in range(0, start_epoch):
+        scheduler.step()
+
+    for epoch in range(start_epoch, n_epochs):
+
+        # Train stage
+        train_loss = custom_trainepoch(train_loader, model, loss_fn, optimizer, cuda, log_interval, metrics)
+        scheduler.step()
+
+        message = 'Epoch: {}/{}. Train set: Average loss: {:.4f}'.format(epoch + 1, n_epochs, train_loss)
+        for metric in metrics:
+            message += '\t{}: {}'.format(metric.name(), metric.value())
+
+        if(val_loader):
+            val_loss = test_epoch(val_loader, model, loss_fn, cuda, metrics)
+            val_loss /= len(val_loader)
+
+            message += '\nEpoch: {}/{}. Validation set: Average loss: {:.4f}'.format(epoch + 1, n_epochs,
+                                                                                    val_loss)
+            for metric in metrics:
+                message += '\t{}: {}'.format(metric.name(), metric.value())
+
+        print(message)
+
+
+
